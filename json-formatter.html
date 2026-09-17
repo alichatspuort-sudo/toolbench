@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON Formatter — ToolBench</title>
+<meta name="description" content="Free JSON formatter and validator — paste messy JSON and get it neatly indented instantly.">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .status{ font-size:0.85rem; margin-top:10px; }
+  .status.ok{ color:#2E7D4F; }
+  .status.err{ color:#C0392B; }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="row">
+      <div class="brand"><span class="chip"></span>Tool<span>Bench</span></div>
+      <nav class="sitenav">
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="tool-page-head">
+    <span class="tag-badge">Developer</span>
+    <h1>JSON Formatter</h1>
+    <p class="lead">Paste JSON below and format it instantly. Everything runs locally — nothing is uploaded.</p>
+  </div>
+
+  <div class="panel">
+    <div class="field">
+      <label for="jsonInput">Input</label>
+      <textarea id="jsonInput" rows="8" placeholder='{"name":"example","values":[1,2,3]}'></textarea>
+    </div>
+    <div style="display:flex; gap:10px; margin-bottom:16px;">
+      <button class="btn" id="formatBtn" type="button">Format</button>
+      <button class="btn secondary" id="minifyBtn" type="button">Minify</button>
+      <button class="btn secondary" id="copyBtn" type="button">Copy Output</button>
+    </div>
+    <div id="statusMsg" class="status"></div>
+    <div class="field" style="margin-top:10px;">
+      <label for="jsonOutput">Output</label>
+      <textarea id="jsonOutput" rows="10" readonly></textarea>
+    </div>
+  </div>
+</main>
+
+<footer class="wrap">
+  <span>&copy; 2026 ToolBench.</span>
+  <span><a href="about.html">About</a> · <a href="privacy.html">Privacy Policy</a> · <a href="disclaimer.html">Disclaimer</a> · <a href="contact.html">Contact</a></span>
+</footer>
+
+<script>
+  const input = document.getElementById('jsonInput');
+  const output = document.getElementById('jsonOutput');
+  const statusMsg = document.getElementById('statusMsg');
+
+  function showStatus(ok, msg){
+    statusMsg.textContent = msg;
+    statusMsg.className = 'status ' + (ok ? 'ok' : 'err');
+  }
+
+  document.getElementById('formatBtn').addEventListener('click', () => {
+    try {
+      const parsed = JSON.parse(input.value);
+      output.value = JSON.stringify(parsed, null, 2);
+      showStatus(true, 'Valid JSON — formatted successfully.');
+    } catch (e) {
+      output.value = '';
+      showStatus(false, 'Invalid JSON: ' + e.message);
+    }
+  });
+
+  document.getElementById('minifyBtn').addEventListener('click', () => {
+    try {
+      const parsed = JSON.parse(input.value);
+      output.value = JSON.stringify(parsed);
+      showStatus(true, 'Valid JSON — minified.');
+    } catch (e) {
+      output.value = '';
+      showStatus(false, 'Invalid JSON: ' + e.message);
+    }
+  });
+
+  document.getElementById('copyBtn').addEventListener('click', () => {
+    if (output.value){
+      navigator.clipboard.writeText(output.value);
+      const btn = document.getElementById('copyBtn');
+      const original = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = original, 1200);
+    }
+  });
+</script>
+</body>
+</html>
