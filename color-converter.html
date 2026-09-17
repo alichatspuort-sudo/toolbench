@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Converter — ToolBench</title>
+<meta name="description" content="Convert colors between HEX, RGB, and HSL formats with a live preview.">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .swatch{
+    width:100%; height:110px; border-radius:6px; border:1px solid var(--line);
+    margin-bottom:20px;
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="row">
+      <div class="brand"><span class="chip"></span>Tool<span>Bench</span></div>
+      <nav class="sitenav">
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="tool-page-head">
+    <span class="tag-badge">Design</span>
+    <h1>Color Converter</h1>
+    <p class="lead">Enter a color in any format — HEX, RGB, or HSL update together automatically.</p>
+  </div>
+
+  <div class="panel">
+    <div class="swatch" id="swatch" style="background:#E2611F;"></div>
+    <div class="field">
+      <label for="hexInput">HEX</label>
+      <input type="text" id="hexInput" value="#E2611F">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="rgbInput">RGB</label>
+        <input type="text" id="rgbInput" value="rgb(226, 97, 31)">
+      </div>
+      <div class="field">
+        <label for="hslInput">HSL</label>
+        <input type="text" id="hslInput" value="hsl(19, 79%, 50%)">
+      </div>
+    </div>
+    <input type="color" id="colorPicker" value="#E2611F" style="width:100%; height:44px; border:1px solid var(--line); border-radius:4px; cursor:pointer;">
+  </div>
+</main>
+
+<footer class="wrap">
+  <span>&copy; 2026 ToolBench.</span>
+  <span><a href="about.html">About</a> · <a href="privacy.html">Privacy Policy</a> · <a href="disclaimer.html">Disclaimer</a> · <a href="contact.html">Contact</a></span>
+</footer>
+
+<script>
+  const hexInput = document.getElementById('hexInput');
+  const rgbInput = document.getElementById('rgbInput');
+  const hslInput = document.getElementById('hslInput');
+  const colorPicker = document.getElementById('colorPicker');
+  const swatch = document.getElementById('swatch');
+
+  function hexToRgb(hex){
+    hex = hex.replace('#', '');
+    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+    const num = parseInt(hex, 16);
+    return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+  }
+
+  function rgbToHex(r, g, b){
+    return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+  }
+
+  function rgbToHsl(r, g, b){
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+    if (max === min){ h = s = 0; }
+    else {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch(max){
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+    }
+    return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+  }
+
+  function updateFromHex(hex){
+    if (!/^#?([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(hex)) return;
+    if (!hex.startsWith('#')) hex = '#' + hex;
+    const { r, g, b } = hexToRgb(hex);
+    const { h, s, l } = rgbToHsl(r, g, b);
+    hexInput.value = hex;
+    rgbInput.value = `rgb(${r}, ${g}, ${b})`;
+    hslInput.value = `hsl(${h}, ${s}%, ${l}%)`;
+    colorPicker.value = hex.length === 4 ? rgbToHex(r, g, b) : hex;
+    swatch.style.background = hex;
+  }
+
+  hexInput.addEventListener('input', () => updateFromHex(hexInput.value));
+  colorPicker.addEventListener('input', () => updateFromHex(colorPicker.value));
+
+  rgbInput.addEventListener('change', () => {
+    const match = rgbInput.value.match(/(\d+)\D+(\d+)\D+(\d+)/);
+    if (match){
+      const hex = rgbToHex(+match[1], +match[2], +match[3]);
+      updateFromHex(hex);
+    }
+  });
+
+  updateFromHex('#E2611F');
+</script>
+</body>
+</html>
