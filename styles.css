@@ -1,0 +1,234 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+:root{
+  --ink:#1B242C;
+  --paper:#EEF2F4;
+  --panel:#FFFFFF;
+  --orange:#E2611F;
+  --steel:#3E6E8E;
+  --line: rgba(27,36,44,0.14);
+  --mono: 'IBM Plex Mono', monospace;
+  --radius: 6px;
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px),
+    var(--paper);
+  background-size: 28px 28px, 28px 28px, auto;
+  background-attachment: fixed;
+  color:var(--ink);
+  font-family:'Inter', sans-serif;
+  font-size:16px;
+  line-height:1.55;
+}
+
+a{color:var(--orange); text-decoration:none;}
+a:hover{text-decoration:underline;}
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible{
+  outline:2px solid var(--orange); outline-offset:2px;
+}
+
+h1,h2,h3{
+  font-family:'Space Grotesk', sans-serif;
+  font-weight:700;
+  margin:0 0 .4em 0;
+  color:var(--ink);
+  letter-spacing:-0.01em;
+}
+
+.wrap{ max-width:980px; margin:0 auto; padding:0 24px; }
+
+/* ===== Masthead ===== */
+.masthead{
+  background:var(--ink);
+  color:#EEF2F4;
+  padding:22px 0;
+}
+.masthead .row{
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:14px;
+}
+.brand{
+  font-family:'Space Grotesk', sans-serif;
+  font-size:1.4rem; font-weight:700;
+  display:flex; align-items:center; gap:9px;
+}
+.brand .chip{
+  width:11px; height:11px; background:var(--orange); border-radius:2px;
+  transform:rotate(45deg);
+}
+.brand span{ color:var(--orange); }
+nav.sitenav{ display:flex; gap:22px; font-size:0.9rem; flex-wrap:wrap; }
+nav.sitenav a{ color:#C9D3D9; }
+nav.sitenav a:hover{ color:var(--orange); text-decoration:none; }
+.tagline{ color:#9FB0B9; font-size:0.85rem; margin-top:4px; }
+
+/* ===== Tool grid on homepage ===== */
+.tool-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(230px, 1fr));
+  gap:16px;
+  padding:36px 0 70px 0;
+}
+.tool-card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:22px 20px;
+  transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+  display:block;
+}
+.tool-card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 12px 26px rgba(27,36,44,0.12);
+  border-color:var(--orange);
+  text-decoration:none;
+}
+.tool-icon{
+  width:42px; height:42px;
+  border-radius:8px;
+  background:var(--paper);
+  border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center;
+  margin-bottom:14px;
+}
+.tool-card h3{ font-size:1.05rem; margin-bottom:6px; }
+.tool-card p{ font-size:0.86rem; color:#5A6873; margin:0; }
+.tag-badge{
+  display:inline-block;
+  font-family:var(--mono);
+  font-size:0.68rem;
+  color:var(--steel);
+  background:rgba(62,110,142,0.10);
+  padding:2px 8px;
+  border-radius:99px;
+  margin-bottom:10px;
+}
+
+.section-heading{
+  padding-top:38px;
+  font-size:1.05rem;
+  color:#5A6873;
+  border-top:1px solid var(--line);
+  margin-top:6px;
+}
+
+/* ===== Tool page layout ===== */
+.tool-page-head{
+  padding:34px 0 6px 0;
+}
+.tool-page-head .tag-badge{ margin-bottom:12px; }
+.tool-page-head h1{ font-size:1.9rem; }
+.tool-page-head p.lead{ color:#5A6873; max-width:60ch; }
+
+.panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:26px 26px 30px 26px;
+  margin:24px 0;
+}
+
+label{
+  display:block;
+  font-size:0.82rem;
+  font-weight:600;
+  margin-bottom:6px;
+  color:#3B4750;
+}
+input[type=text], input[type=number], input[type=password], select, textarea{
+  width:100%;
+  padding:10px 12px;
+  border:1px solid var(--line);
+  border-radius:4px;
+  background:var(--paper);
+  font-family:'Inter', sans-serif;
+  font-size:0.94rem;
+  color:var(--ink);
+}
+textarea{ resize:vertical; min-height:120px; font-family:var(--mono); }
+.field{ margin-bottom:16px; }
+.field-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+@media (max-width:560px){ .field-row{ grid-template-columns:1fr; } }
+
+.btn{
+  background:var(--orange);
+  color:#fff;
+  border:none;
+  border-radius:4px;
+  padding:11px 20px;
+  font-size:0.92rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.btn:hover{ transform:translateY(-1px); box-shadow:0 8px 18px rgba(226,97,31,0.35); }
+.btn.secondary{
+  background:transparent;
+  color:var(--ink);
+  border:1px solid var(--line);
+}
+.btn.secondary:hover{ border-color:var(--orange); color:var(--orange); box-shadow:none; }
+
+.result-box{
+  background:var(--paper);
+  border:1px dashed var(--line);
+  border-radius:4px;
+  padding:16px 18px;
+  font-family:var(--mono);
+  font-size:1.1rem;
+  color:var(--ink);
+  word-break:break-word;
+}
+.result-label{
+  font-size:0.72rem;
+  color:#5A6873;
+  font-family:'Inter', sans-serif;
+  margin-bottom:6px;
+  text-transform:uppercase;
+  letter-spacing:0.04em;
+}
+
+.stat-row{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(110px, 1fr));
+  gap:12px;
+  margin-top:18px;
+}
+.stat-box{
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:4px;
+  padding:14px 14px;
+  text-align:center;
+}
+.stat-box .num{ font-family:var(--mono); font-size:1.5rem; font-weight:600; color:var(--orange); }
+.stat-box .lbl{ font-size:0.74rem; color:#5A6873; margin-top:2px; }
+
+/* ===== Static pages ===== */
+.page{ padding:44px 0 80px 0; max-width:70ch; }
+.page h1{ font-size:1.8rem; margin-bottom:.6em; }
+.page h2{ font-size:1.1rem; margin-top:1.6em; }
+.page p{ margin:0 0 1em 0; color:#3B4750; }
+
+footer{
+  border-top:1px solid var(--line);
+  padding:24px 0 40px 0;
+  font-size:0.82rem;
+  color:#5A6873;
+  display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
+}
+footer a{ color:#5A6873; }
+footer a:hover{ color:var(--orange); }
+
+@media (max-width:640px){
+  nav.sitenav{ gap:12px; }
+}
