@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF Tools — ToolBench</title>
+<meta name="description" content="Merge multiple PDFs into one, or split pages out of a PDF, entirely in your browser. Nothing is uploaded.">
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<style>
+  .tabs{ display:flex; gap:8px; margin-bottom:22px; }
+  .tab-btn{
+    padding:9px 18px; border:1px solid var(--line); border-radius:99px;
+    background:var(--panel); font-size:0.88rem; cursor:pointer; color:#5A6873;
+  }
+  .tab-btn.active{ background:var(--ink); color:#fff; border-color:var(--ink); }
+  .drop-zone{
+    border:2px dashed var(--line); border-radius:6px; padding:30px 20px;
+    text-align:center; color:#5A6873; cursor:pointer;
+  }
+  .drop-zone:hover{ border-color:var(--orange); }
+  .file-list{ margin-top:14px; }
+  .file-list li{
+    display:flex; justify-content:space-between; align-items:center;
+    background:var(--paper); border:1px solid var(--line); border-radius:4px;
+    padding:8px 12px; margin-bottom:6px; font-size:0.86rem;
+  }
+  .file-list button{ background:none; border:none; color:#C0392B; cursor:pointer; font-size:0.8rem; }
+  .status{ font-size:0.85rem; margin-top:12px; }
+  .status.ok{ color:#2E7D4F; }
+  .status.err{ color:#C0392B; }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="row">
+      <div class="brand"><span class="chip"></span>Tool<span>Bench</span></div>
+      <nav class="sitenav">
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="tool-page-head">
+    <span class="tag-badge">Documents</span>
+    <h1>PDF Tools</h1>
+    <p class="lead">Merge or split PDF files — everything happens on your device, files are never uploaded to a server.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="merge">Merge PDFs</button>
+    <button class="tab-btn" data-tab="split">Split PDF</button>
+  </div>
+
+  <div class="panel" id="merge-panel">
+    <div class="drop-zone" id="mergeDropZone">
+      Click to add PDF files (choose multiple), or drag them here
+      <input type="file" id="mergeInput" accept="application/pdf" multiple style="display:none;">
+    </div>
+    <ul class="file-list" id="mergeFileList"></ul>
+    <button class="btn" id="mergeBtn" type="button" style="margin-top:16px;">Merge &amp; Download</button>
+    <div id="mergeStatus" class="status"></div>
+  </div>
+
+  <div class="panel" id="split-panel" style="display:none;">
+    <div class="drop-zone" id="splitDropZone">
+      Click to choose one PDF file
+      <input type="file" id="splitInput" accept="application/pdf" style="display:none;">
+    </div>
+    <div id="splitFileName" style="margin-top:10px; font-size:0.86rem; color:#5A6873;"></div>
+    <div class="field-row" style="margin-top:16px;">
+      <div class="field">
+        <label for="pageFrom">From page</label>
+        <input type="number" id="pageFrom" min="1" value="1">
+      </div>
+      <div class="field">
+        <label for="pageTo">To page</label>
+        <input type="number" id="pageTo" min="1" value="1">
+      </div>
+    </div>
+    <button class="btn" id="splitBtn" type="button">Extract &amp; Download</button>
+    <div id="splitStatus" class="status"></div>
+  </div>
+</main>
+
+<footer class="wrap">
+  <span>&copy; 2026 ToolBench.</span>
+  <span><a href="about.html">About</a> · <a href="privacy.html">Privacy Policy</a> · <a href="disclaimer.html">Disclaimer</a> · <a href="contact.html">Contact</a></span>
+</footer>
+
+<script>
+  const { PDFDocument } = PDFLib;
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('merge-panel').style.display = btn.dataset.tab === 'merge' ? 'block' : 'none';
+      document.getElementById('split-panel').style.display = btn.dataset.tab === 'split' ? 'block' : 'none';
+    });
+  });
+
+  /* ---- Merge ---- */
+  let mergeFiles = [];
+  const mergeDropZone = document.getElementById('mergeDropZone');
+  const mergeInput = document.getElementById('mergeInput');
+  const mergeFileList = document.getElementById('mergeFileList');
+  const mergeStatus = document.getElementById('mergeStatus');
+
+  mergeDropZone.addEventListener('click', () => mergeInput.click());
+  mergeInput.addEventListener('change', () => addMergeFiles(mergeInput.files));
+  mergeDropZone.addEventListener('dragover', (e) => e.preventDefault());
+  mergeDropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    addMergeFiles(e.dataTransfer.files);
+  });
+
+  function addMergeFiles(fileList){
+    Array.from(fileList).forEach(f => { if (f.type === 'application/pdf') mergeFiles.push(f); });
+    renderMergeList();
+  }
+
+  function renderMergeList(){
+    mergeFileList.innerHTML = mergeFiles.map((f, i) =>
+      `<li>${f.name}<button data-i="${i}">Remove</button></li>`
+    ).join('');
+    mergeFileList.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        mergeFiles.splice(parseInt(btn.dataset.i, 10), 1);
+        renderMergeList();
+      });
+    });
+  }
+
+  document.getElementById('mergeBtn').addEventListener('click', async () => {
+    if (mergeFiles.length < 2){
+      mergeStatus.className = 'status err';
+      mergeStatus.textContent = 'Add at least two PDF files to merge.';
+      return;
+    }
+    mergeStatus.className = 'status';
+    mergeStatus.textContent = 'Merging...';
+    try {
+      const mergedPdf = await PDFDocument.create();
+      for (const file of mergeFiles){
+        const bytes = await file.arrayBuffer();
+        const pdf = await PDFDocument.load(bytes);
+        const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+        pages.forEach(p => mergedPdf.addPage(p));
+      }
+      const mergedBytes = await mergedPdf.save();
+      downloadBlob(mergedBytes, 'merged.pdf');
+      mergeStatus.className = 'status ok';
+      mergeStatus.textContent = `Merged ${mergeFiles.length} files successfully.`;
+    } catch (e) {
+      mergeStatus.className = 'status err';
+      mergeStatus.textContent = 'Error merging files: ' + e.message;
+    }
+  });
+
+  /* ---- Split ---- */
+  let splitFile = null;
+  const splitDropZone = document.getElementById('splitDropZone');
+  const splitInput = document.getElementById('splitInput');
+  const splitStatus = document.getElementById('splitStatus');
+
+  splitDropZone.addEventListener('click', () => splitInput.click());
+  splitInput.addEventListener('change', () => {
+    if (splitInput.files.length){
+      splitFile = splitInput.files[0];
+      document.getElementById('splitFileName').textContent = 'Selected: ' + splitFile.name;
+    }
+  });
+
+  document.getElementById('splitBtn').addEventListener('click', async () => {
+    if (!splitFile){
+      splitStatus.className = 'status err';
+      splitStatus.textContent = 'Choose a PDF file first.';
+      return;
+    }
+    const from = parseInt(document.getElementById('pageFrom').value, 10) - 1;
+    const to = parseInt(document.getElementById('pageTo').value, 10) - 1;
+    splitStatus.className = 'status';
+    splitStatus.textContent = 'Extracting...';
+    try {
+      const bytes = await splitFile.arrayBuffer();
+      const pdf = await PDFDocument.load(bytes);
+      const totalPages = pdf.getPageCount();
+      if (from < 0 || to >= totalPages || from > to){
+        splitStatus.className = 'status err';
+        splitStatus.textContent = `Invalid page range. This PDF has ${totalPages} pages.`;
+        return;
+      }
+      const newPdf = await PDFDocument.create();
+      const indices = [];
+      for (let i = from; i <= to; i++) indices.push(i);
+      const pages = await newPdf.copyPages(pdf, indices);
+      pages.forEach(p => newPdf.addPage(p));
+      const newBytes = await newPdf.save();
+      downloadBlob(newBytes, 'extracted.pdf');
+      splitStatus.className = 'status ok';
+      splitStatus.textContent = `Extracted pages ${from + 1}-${to + 1} successfully.`;
+    } catch (e) {
+      splitStatus.className = 'status err';
+      splitStatus.textContent = 'Error: ' + e.message;
+    }
+  });
+
+  function downloadBlob(bytes, filename){
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+</script>
+</body>
+</html>
