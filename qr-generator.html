@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QR Code Generator — ToolBench</title>
+<meta name="description" content="Turn any text or link into a free, downloadable QR code instantly.">
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  #qrPreview{
+    display:flex; justify-content:center; align-items:center;
+    background:#fff; border:1px solid var(--line); border-radius:6px;
+    padding:20px; margin-top:18px; min-height:220px;
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="row">
+      <div class="brand"><span class="chip"></span>Tool<span>Bench</span></div>
+      <nav class="sitenav">
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="tool-page-head">
+    <span class="tag-badge">Utility</span>
+    <h1>QR Code Generator</h1>
+    <p class="lead">Type a link or any text and get a QR code you can download as an image.</p>
+  </div>
+
+  <div class="panel">
+    <div class="field">
+      <label for="qrText">Text or URL</label>
+      <input type="text" id="qrText" value="https://alichatspuort-sudo.github.io/" placeholder="https://example.com">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="qrSize">Size</label>
+        <select id="qrSize">
+          <option value="150">Small (150px)</option>
+          <option value="220" selected>Medium (220px)</option>
+          <option value="320">Large (320px)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="qrColor">Color</label>
+        <input type="color" id="qrColor" value="#1B242C" style="height:42px; cursor:pointer;">
+      </div>
+    </div>
+    <button class="btn" id="generateBtn" type="button">Generate QR Code</button>
+    <button class="btn secondary" id="downloadBtn" type="button">Download PNG</button>
+
+    <div id="qrPreview"><div id="qrcode"></div></div>
+  </div>
+</main>
+
+<footer class="wrap">
+  <span>&copy; 2026 ToolBench.</span>
+  <span><a href="about.html">About</a> · <a href="privacy.html">Privacy Policy</a> · <a href="disclaimer.html">Disclaimer</a> · <a href="contact.html">Contact</a></span>
+</footer>
+
+<script>
+  let qrInstance = null;
+
+  function generate(){
+    const text = document.getElementById('qrText').value || 'https://example.com';
+    const size = parseInt(document.getElementById('qrSize').value, 10);
+    const color = document.getElementById('qrColor').value;
+    const container = document.getElementById('qrcode');
+    container.innerHTML = '';
+
+    qrInstance = new QRCode(container, {
+      text: text,
+      width: size,
+      height: size,
+      colorDark: color,
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  }
+
+  document.getElementById('generateBtn').addEventListener('click', generate);
+
+  document.getElementById('downloadBtn').addEventListener('click', () => {
+    const img = document.querySelector('#qrcode img') || document.querySelector('#qrcode canvas');
+    if (!img) { generate(); return; }
+    const link = document.createElement('a');
+    link.download = 'qrcode.png';
+    if (img.tagName === 'CANVAS'){
+      link.href = img.toDataURL('image/png');
+    } else {
+      link.href = img.src;
+    }
+    link.click();
+  });
+
+  window.addEventListener('load', generate);
+</script>
+</body>
+</html>
