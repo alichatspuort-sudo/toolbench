@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image Resizer — ToolBench</title>
+<meta name="description" content="Resize or compress an image and download it, entirely in your browser. Nothing is uploaded.">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .drop-zone{
+    border:2px dashed var(--line);
+    border-radius:6px;
+    padding:34px 20px;
+    text-align:center;
+    color:#5A6873;
+    cursor:pointer;
+    transition:border-color .2s ease, background .2s ease;
+  }
+  .drop-zone:hover, .drop-zone.drag{ border-color:var(--orange); background:rgba(226,97,31,0.05); }
+  #previewImg{ max-width:100%; border-radius:6px; margin-top:16px; display:none; }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="row">
+      <div class="brand"><span class="chip"></span>Tool<span>Bench</span></div>
+      <nav class="sitenav">
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="tool-page-head">
+    <span class="tag-badge">Image</span>
+    <h1>Image Resizer</h1>
+    <p class="lead">Resize or compress an image and download the result — processed entirely on your device, never uploaded anywhere.</p>
+  </div>
+
+  <div class="panel">
+    <div class="drop-zone" id="dropZone">
+      <div id="dropLabel">Click to choose an image, or drag one here</div>
+      <input type="file" id="fileInput" accept="image/*" style="display:none;">
+    </div>
+    <img id="previewImg" alt="Preview">
+
+    <div class="field-row" style="margin-top:20px;">
+      <div class="field">
+        <label for="widthInput">Width (px)</label>
+        <input type="number" id="widthInput" placeholder="auto">
+      </div>
+      <div class="field">
+        <label for="heightInput">Height (px)</label>
+        <input type="number" id="heightInput" placeholder="auto">
+      </div>
+    </div>
+    <div class="field">
+      <label><input type="checkbox" id="lockRatio" checked> Keep aspect ratio</label>
+    </div>
+    <div class="field">
+      <label for="qualityRange">Quality (for JPEG): <span id="qualityLabel">85</span>%</label>
+      <input type="range" id="qualityRange" min="10" max="100" value="85" style="width:100%;">
+    </div>
+
+    <button class="btn" id="resizeBtn" type="button">Resize &amp; Download</button>
+    <div id="fileInfo" class="result-box" style="margin-top:18px; display:none;"></div>
+  </div>
+</main>
+
+<footer class="wrap">
+  <span>&copy; 2026 ToolBench.</span>
+  <span><a href="about.html">About</a> · <a href="privacy.html">Privacy Policy</a> · <a href="disclaimer.html">Disclaimer</a> · <a href="contact.html">Contact</a></span>
+</footer>
+
+<script>
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const previewImg = document.getElementById('previewImg');
+  const widthInput = document.getElementById('widthInput');
+  const heightInput = document.getElementById('heightInput');
+  const lockRatio = document.getElementById('lockRatio');
+  const qualityRange = document.getElementById('qualityRange');
+  const qualityLabel = document.getElementById('qualityLabel');
+  const fileInfo = document.getElementById('fileInfo');
+
+  let originalImage = null;
+  let aspectRatio = 1;
+  let originalFileType = 'image/jpeg';
+  let originalFileName = 'image';
+
+  qualityRange.addEventListener('input', () => qualityLabel.textContent = qualityRange.value);
+
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag');
+    if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+  });
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) handleFile(fileInput.files[0]);
+  });
+
+  function handleFile(file){
+    if (!file.type.startsWith('image/')) return;
+    originalFileType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+    originalFileName = file.name.replace(/\.[^.]+$/, '');
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        originalImage = img;
+        aspectRatio = img.width / img.height;
+        widthInput.value = img.width;
+        heightInput.value = img.height;
+        previewImg.src = e.target.result;
+        previewImg.style.display = 'block';
+        document.getElementById('dropLabel').textContent = `Loaded: ${file.name} (${img.width}\u00d7${img.height})`;
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  widthInput.addEventListener('input', () => {
+    if (lockRatio.checked && originalImage){
+      heightInput.value = Math.round(widthInput.value / aspectRatio);
+    }
+  });
+  heightInput.addEventListener('input', () => {
+    if (lockRatio.checked && originalImage){
+      widthInput.value = Math.round(heightInput.value * aspectRatio);
+    }
+  });
+
+  document.getElementById('resizeBtn').addEventListener('click', () => {
+    if (!originalImage){ alert('Choose an image first.'); return; }
+    const w = parseInt(widthInput.value, 10) || originalImage.width;
+    const h = parseInt(heightInput.value, 10) || originalImage.height;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(originalImage, 0, 0, w, h);
+
+    const quality = parseInt(qualityRange.value, 10) / 100;
+    canvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const ext = originalFileType === 'image/png' ? 'png' : 'jpg';
+      link.href = url;
+      link.download = `${originalFileName}-resized.${ext}`;
+      link.click();
+      URL.revokeObjectURL(url);
+
+      fileInfo.style.display = 'block';
+      fileInfo.innerHTML = `<div class="result-label">Output</div>${w}\u00d7${h}px &middot; ${(blob.size / 1024).toFixed(1)} KB &middot; downloaded`;
+    }, originalFileType, quality);
+  });
+</script>
+</body>
+</html>
